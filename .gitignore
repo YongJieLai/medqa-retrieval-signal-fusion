@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# 数据 / 模型 / 缓存（不入库）
+data/
+datasets/
+kg/
+corpus/
+cache/
+*.parquet
+*.arrow
+*.pkl
+*.pt
+*.bin
+*.h5
+
+# 结果（单独管理，见实验纪律）
+results/
+runs/
+*.log
+
+# 编辑器 / 系统
+.DS_Store
+.idea/
+.vscode/

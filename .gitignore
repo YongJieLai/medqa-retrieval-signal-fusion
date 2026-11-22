@@ -20,11 +20,12 @@ cache/
 *.h5
 
 # 结果（单独管理，见实验纪律）
-results/
+results/*
 runs/
 *.log
 
 # 关键实验结果入库（论文 Figure 1 数据来源），其余 results 中间产物忽略
+!results/
 !results/core_table_final.csv
 !results/core_table_mixed.csv
 !results/miss_rate_by_type.png

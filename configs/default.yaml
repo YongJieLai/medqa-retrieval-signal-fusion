@@ -6,9 +6,9 @@ BUDGET_RATIO: 0.2      # 预算 B = 20% × N
 TYPE1_RATIO: 0.4       # 类型1（罕见病）占比
 
 # 模型（全程同一 backbone）
-MODEL: "gpt-4o-mini"
-# API key 从环境变量 OPENAI_API_KEY 读取，不写入配置/代码（代码纪律 §9 禁提交密钥）
-BASE_URL: null         # OpenAI 官方 API 默认即可；如用中转填这里
+MODEL: "qwen-turbo"    # 通义千问（DashScope 兼容模式，国内直连；该 key 唯一开通的模型）
+# API key 从环境变量 DASHSCOPE_API_KEY 读取，不写入配置/代码（代码纪律 §9 禁提交密钥）
+BASE_URL: "https://dashscope.aliyuncs.com/compatible-mode/v1"
 
 # coverage 公式常量
 TAU: 1.0               # 缺失概率校准 τ（网格 {0.5, 1.0, 2.0}，MVP 用 1.0）

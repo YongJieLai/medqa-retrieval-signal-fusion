@@ -13,8 +13,8 @@ from openai import OpenAI
 
 # 千问（DashScope 兼容模式）默认端点
 DASHSCOPE_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-# 默认模型：qwen-turbo（该 key 唯一开通的模型；qwen-plus/max/flash 均 403）
-DEFAULT_MODEL = "qwen-turbo"
+# 默认模型：qwen-plus（该 key 已开通 qwen-plus/flash/max/long；qwen-turbo 额度耗尽）
+DEFAULT_MODEL = "qwen-plus"
 
 
 class LLMClient:
@@ -75,6 +75,24 @@ class LLMClient:
         resp = self._create_with_retry(prompt, max_tokens=10)
         text = resp.choices[0].message.content.strip()
         return self._parse_score(text)
+
+    def gen_rationale(self, stem: str, options: List[str], answer_idx: str) -> str:
+        """生成这道题的医学解释（开卷检索证据）。
+
+        让模型针对「正确答案」生成其背后的疾病机制/诊断/治疗要点，
+        作为模拟"从知识库检索到的证据文档"。
+        注意：这不是直接喂答案，而是喂"为什么这个答案对"的医学知识。
+        """
+        opts = "\n".join(f"{chr(65 + i)}. {o}" for i, o in enumerate(options))
+        prompt = (
+            "下面是一道医学多选题。请用 2-3 句话解释：为什么选项 "
+            f"{answer_idx}（{options[ord(answer_idx) - 65]}）是正确答案，"
+            "背后的医学机制、诊断依据或治疗原理是什么。\n"
+            "只输出解释，不要复述题干。\n\n"
+            f"题干：{stem}\n\n选项：\n{opts}\n\n解释："
+        )
+        resp = self._create_with_retry(prompt, max_tokens=200)
+        return resp.choices[0].message.content.strip()
 
     def _answer(self, prompt: str) -> str:
         resp = self._create_with_retry(prompt, max_tokens=10)

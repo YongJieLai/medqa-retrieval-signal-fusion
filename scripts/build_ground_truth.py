@@ -21,8 +21,8 @@ sys.path.insert(0, ".")
 
 
 def _load_env_file(path=".env"):
-    """从 .env 文件读取 OPENAI_API_KEY（不覆盖已有环境变量）。"""
-    if os.environ.get("OPENAI_API_KEY"):
+    """从 .env 文件读取 API key（不覆盖已有环境变量）。"""
+    if os.environ.get("DASHSCOPE_API_KEY") or os.environ.get("OPENAI_API_KEY"):
         return
     if not os.path.exists(path):
         return
@@ -33,8 +33,8 @@ def _load_env_file(path=".env"):
                 continue
             k, v = line.split("=", 1)
             k, v = k.strip(), v.strip().strip('"').strip("'")
-            if k == "OPENAI_API_KEY" and v:
-                os.environ["OPENAI_API_KEY"] = v
+            if k in ("DASHSCOPE_API_KEY", "OPENAI_API_KEY") and v:
+                os.environ[k] = v
 
 
 from src.data.synthetic_batch import build_synthetic_batch
@@ -43,14 +43,14 @@ from src.execute.llm_client import LLMClient
 
 def main():
     _load_env_file()
-    api_key = os.environ.get("OPENAI_API_KEY")
+    api_key = os.environ.get("DASHSCOPE_API_KEY") or os.environ.get("OPENAI_API_KEY")
     if not api_key:
-        print("❌ 请先提供 OpenAI API key（二选一）：")
-        print("   1) 在 repo 根目录创建 .env 文件，写入：OPENAI_API_KEY=sk-...")
-        print("   2) export OPENAI_API_KEY=sk-...")
+        print("❌ 请先提供 API key（二选一）：")
+        print("   1) 在 repo 根目录创建 .env 文件，写入：DASHSCOPE_API_KEY=sk-...")
+        print("   2) export DASHSCOPE_API_KEY=sk-...")
         sys.exit(1)
 
-    client = LLMClient(api_key=api_key, model="gpt-4o-mini")
+    client = LLMClient(api_key=api_key)  # 默认 qwen-plus（DashScope）
     questions = build_synthetic_batch()
 
     os.makedirs("results", exist_ok=True)

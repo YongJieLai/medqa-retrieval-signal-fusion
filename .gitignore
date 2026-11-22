@@ -24,6 +24,12 @@ results/
 runs/
 *.log
 
+# 关键实验结果入库（论文 Figure 1 数据来源），其余 results 中间产物忽略
+!results/core_table_final.csv
+!results/core_table_mixed.csv
+!results/miss_rate_by_type.png
+!results/实验说明.md
+
 # 编辑器 / 系统
 .DS_Store
 .idea/

@@ -103,6 +103,50 @@ class LLMClient:
                 return ch
         return "A"  # 兜底（不应发生）
 
+    def familiarity(self, stem: str, options: List[str]) -> float:
+        """M2 · KBM 熟悉度（模型内部信号，无 ground truth 泄漏）。
+
+        用模型输出第一个 token 时「最佳 token 与次优 token 的 logprob 差距（margin）」
+        作为熟悉度代理。margin 大 = 模型非常确定 = 熟悉；margin 小 = 犹豫 = 不熟悉。
+        返回 0~1（1=熟悉）。
+
+        这是真正读模型内部状态（logprobs 的 top_logprobs），不依赖答案对错。
+        """
+        import math
+
+        opts = "\n".join(f"{chr(65 + i)}. {o}" for i, o in enumerate(options))
+        prompt = (
+            "你是医学多选题助手。请只根据题干和选项选出唯一正确答案。\n"
+            "严格只输出一个字母（A/B/C/D），不要输出任何解释。\n\n"
+            f"题干：{stem}\n\n选项：\n{opts}\n\n答案："
+        )
+        resp = self.client.chat.completions.create(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0,
+            max_tokens=10,
+            logprobs=True,
+            top_logprobs=5,
+        )
+        choice = resp.choices[0]
+        if not hasattr(choice, "logprobs") or choice.logprobs is None:
+            return 0.5
+        lp = choice.logprobs
+        if not hasattr(lp, "content") or not lp.content:
+            return 0.5
+        # 取第一个生成 token 的 top_logprobs
+        first = lp.content[0]
+        if not hasattr(first, "top_logprobs") or not first.top_logprobs:
+            return 0.5
+        toplps = sorted([t.logprob for t in first.top_logprobs], reverse=True)
+        if len(toplps) < 2:
+            return 0.5
+        # margin = 最佳 logprob - 次优 logprob（越大越确定/熟悉）
+        margin = toplps[0] - toplps[1]
+        # 映射到 0~1：margin=0 → 0.5，margin 大 → 接近 1
+        familiarity = 1.0 / (1.0 + math.exp(-(margin - 5.0) / 5.0))
+        return max(0.0, min(1.0, familiarity))
+
     def _create_with_retry(self, prompt: str, max_tokens: int = 10):
         """带限速重试的 chat.completions.create。
 

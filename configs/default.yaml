@@ -1,0 +1,21 @@
+# 失效场景验证实验 —— 默认配置（代码纪律：关键常量集中管理、注释来源）
+
+# 数据集
+N_QUESTIONS: 20        # 合成迷你批次题数（MVP）
+BUDGET_RATIO: 0.2      # 预算 B = 20% × N
+TYPE1_RATIO: 0.4       # 类型1（罕见病）占比
+
+# 模型（全程同一 backbone）
+MODEL: "gpt-4o-mini"
+# API key 从环境变量 OPENAI_API_KEY 读取，不写入配置/代码（代码纪律 §9 禁提交密钥）
+BASE_URL: null         # OpenAI 官方 API 默认即可；如用中转填这里
+
+# coverage 公式常量
+TAU: 1.0               # 缺失概率校准 τ（网格 {0.5, 1.0, 2.0}，MVP 用 1.0）
+# idf_median 在运行时由全部概念 IDF 计算，不写死
+
+# 随机种子（可复现）
+SEED: 42
+
+# 输出目录
+RESULTS_DIR: "results"
